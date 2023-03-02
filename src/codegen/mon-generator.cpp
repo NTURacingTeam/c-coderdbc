@@ -105,6 +105,7 @@ next generation will completely clear all manually added code (!)\n\
 
   wr.Append("#ifdef %s_USE_MONO_FMON", aset.gen.DRVNAME.c_str());
   wr.Append();
+  wr.Append("__attribute__((weak))");
   wr.Append("void _FMon_MONO_%s(FrameMonitor_t* _mon, uint32_t msgid)", aset.gen.drvname.c_str());
   wr.Append("{");
   wr.Append("  (void)_mon;");
@@ -117,6 +118,7 @@ next generation will completely clear all manually added code (!)\n\
   for (auto it = sigs.begin(); it != sigs.end(); ++it)
   {
     auto msg = &((*it)->msg);
+    wr.Append("__attribute__((weak))");
     wr.Append("void _FMon_%s_%s(FrameMonitor_t* _mon, uint32_t msgid)\n{\n  (void)_mon;\n  (void)msgid;\n}\n\n",
       msg->Name.c_str(), aset.gen.drvname.c_str());
   }

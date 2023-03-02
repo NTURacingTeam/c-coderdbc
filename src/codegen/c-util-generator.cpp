@@ -157,10 +157,35 @@ void CiUtilGenerator::PrintHeader()
   if (rx.size() > 0)
   {
     // receive function necessary only when more than 0 rx messages were mapped
-    tof.Append("uint32_t %s_Receive(%s_rx_t* m, const uint8_t* d, uint32_t msgid, uint8_t dlc);",
+    tof.Append("uint32_t %s_Receive(%s_rx_t* _m, const uint8_t* d, uint32_t msgid, uint8_t dlc);",
       gdesc->drvname.c_str(), gdesc->drvname.c_str());
     tof.Append();
   }
+
+  tof.Append("#ifdef %s", gdesc->usemon_def.c_str());
+  tof.Append();
+
+  if (rx.size() > 0)
+  {
+    // check receive timeout function necessary only when more than 0 rx messages were mapped
+    tof.Append("void %s_Check_Receive_Timeout_Init(%s_rx_t* _m);",
+      gdesc->drvname.c_str(), gdesc->drvname.c_str());
+    tof.Append();
+    tof.Append("uint32_t %s_Check_Receive_Timeout(%s_rx_t* _m);",
+      gdesc->drvname.c_str(), gdesc->drvname.c_str());
+    tof.Append();
+  }
+
+  if (tx.size() > 0)
+  {
+    // transmit function necessary only when more than 0 tx messages were mapped
+    tof.Append("uint32_t %s_Transmit(%s_tx_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide);",
+      gdesc->drvname.c_str(), gdesc->drvname.c_str());
+    tof.Append();
+  }
+
+  tof.Append("#endif // %s", gdesc->usemon_def.c_str());
+  tof.Append();
 
   // print extern for super structs
   if (rx.size() > 0 || tx.size() > 0)
@@ -256,6 +281,58 @@ void CiUtilGenerator::PrintSource()
     // clear tree after using
     condtree.DeleteTree(tree);
   }
+
+  tof.Append("#ifdef %s", gdesc->usemon_def.c_str());
+  tof.Append();
+
+  if (rx.size() > 0)
+  {
+    tof.Append("void %s_Check_Receive_Timeout_Init(%s_rx_t* _m)",
+      gdesc->drvname.c_str(), gdesc->drvname.c_str());
+    tof.Append("{");
+    tof.Append(" uint32_t now = GetSystemTick();");
+    for(auto &msg : rx) {
+      tof.Append(" _m->%s.mon1.last_cycle = now;", msg->Name.c_str());
+    }
+    tof.Append("}");
+    tof.Append();
+    tof.Append("uint32_t %s_Check_Receive_Timeout(%s_rx_t* _m)",
+      gdesc->drvname.c_str(), gdesc->drvname.c_str());
+    tof.Append("{");
+    tof.Append(" uint32_t now = GetSystemTick();");
+    for(auto &msg : rx) {
+      if (msg->Cycle > 0) {
+        tof.Append(" if ((now - _m->%s.mon1.last_cycle) > 5 * %s_CYC) {", msg->Name.c_str(), msg->Name.c_str());
+        tof.Append("  return %s_CANID;", msg->Name.c_str());
+        tof.Append(" }");
+      }
+    }
+    tof.Append(" return 0U;");
+    tof.Append("}");
+    tof.Append();
+  }
+
+  if (tx.size() > 0)
+  {
+    tof.Append("uint32_t %s_Transmit(%s_tx_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide)",
+      gdesc->drvname.c_str(), gdesc->drvname.c_str());
+    tof.Append("{");
+    tof.Append(" uint32_t now = GetSystemTick();");
+    for(auto &msg : tx) {
+      if (msg->Cycle > 0) {
+        tof.Append(" if ((now - _m->%s.mon1.last_cycle) > %s_CYC) {", msg->Name.c_str(), msg->Name.c_str());
+        tof.Append("  return Pack_%s_%s(&(_m->%s), _d, _len, _ide);",
+          msg->Name.c_str(), code_drvname.c_str(), msg->Name.c_str());
+        tof.Append(" }");
+      }
+    }
+    tof.Append(" return 0U;");
+    tof.Append("}");
+    tof.Append();
+  }
+
+  tof.Append("#endif // %s", gdesc->usemon_def.c_str());
+  tof.Append();
 
   tof.Flush(fdesc->util_c.fpath);
 }
