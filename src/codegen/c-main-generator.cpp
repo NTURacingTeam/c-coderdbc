@@ -533,7 +533,7 @@ void CiMainGenerator::Gen_DbcCodeConf()
   fwriter.Append("//  - msgid: id of the timeout message");
   fwriter.Append("//  - lastcyc: last cycle the timeout message was received");
   fwriter.Append("");
-  fwriter.Append("// #define AlertReceptionTimeout(msgid,lastcyc) __alert_reception_timepot__(msgid,lastcyc)");
+  fwriter.Append("// #define AlertReceptionTimeout(msgid,lastcyc) __alert_reception_timeout__(msgid,lastcyc)");
   fwriter.Append("");
   fwriter.Append("// To provide a way to make missing control correctly you");
   fwriter.Append("// have to define macro @SendCanMessage(msgid,ide,d,len)");
