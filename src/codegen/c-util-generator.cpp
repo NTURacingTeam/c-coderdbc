@@ -267,14 +267,14 @@ void CiUtilGenerator::PrintSource()
       gdesc->drvname.c_str(), gdesc->drvname.c_str());
 
     tof.Append("{");
-    tof.Append(" uint32_t recid = 0;");
+    tof.Append("  uint32_t recid = 0;");
 
     // put tree-view struct on code (in treestr variable)
     std::string treestr;
     condtree.Clear();
     tof.Append(condtree.WriteCode(tree, treestr, 1));
     tof.Append();
-    tof.Append(" return recid;");
+    tof.Append("  return recid;");
     tof.Append("}");
     tof.Append();
 
@@ -290,23 +290,23 @@ void CiUtilGenerator::PrintSource()
     tof.Append("void %s_Check_Receive_Timeout_Init(%s_rx_t* _m)",
       gdesc->drvname.c_str(), gdesc->drvname.c_str());
     tof.Append("{");
-    tof.Append(" uint32_t now = GetSystemTick();");
+    tof.Append("  uint32_t now = GetSystemTick();");
     for(auto &msg : rx) {
-      tof.Append(" _m->%s.mon1.last_cycle = now;", msg->Name.c_str());
+      tof.Append("  _m->%s.mon1.last_cycle = now;", msg->Name.c_str());
     }
     tof.Append("}");
     tof.Append();
     tof.Append("void %s_Check_Receive_Timeout(%s_rx_t* _m)",
       gdesc->drvname.c_str(), gdesc->drvname.c_str());
     tof.Append("{");
-    tof.Append(" uint32_t now = GetSystemTick();");
+    tof.Append("  uint32_t now = GetSystemTick();");
     for(auto &msg : rx) {
       if (msg->Cycle > 0) {
-        tof.Append(" if ((now - _m->%s.mon1.last_cycle) > 5 * %s_CYC) {",
+        tof.Append("  if ((now - _m->%s.mon1.last_cycle) > 5 * %s_CYC) {",
           msg->Name.c_str(), msg->Name.c_str());
-        tof.Append("  AlertReceptionTimeout(%s_CANID, _m->%s.mon1.last_cycle);",
+        tof.Append("    AlertReceptionTimeout(%s_CANID, _m->%s.mon1.last_cycle);",
           msg->Name.c_str(), msg->Name.c_str());
-        tof.Append(" }");
+        tof.Append("  }");
       }
     }
     tof.Append("}");
@@ -318,24 +318,24 @@ void CiUtilGenerator::PrintSource()
     tof.Append("int %s_Transmit(%s_tx_t* _m)",
       gdesc->drvname.c_str(), gdesc->drvname.c_str());
     tof.Append("{");
-    tof.Append(" int ret;");
-    tof.Append(" uint32_t now = GetSystemTick();");
+    tof.Append("  int ret;");
+    tof.Append("  uint32_t now = GetSystemTick();");
     for(auto &msg : tx) {
       if (msg->Cycle > 0) {
-        tof.Append(" if ((now - _m->%s.mon1.last_cycle) > %s_CYC) {",
+        tof.Append("  if ((now - _m->%s.mon1.last_cycle) > %s_CYC) {",
           msg->Name.c_str(), msg->Name.c_str());
-        tof.Append("  uint32_t msgid;");
-        tof.Append("  uint8_t d[8], len, ide;");
-        tof.Append("  msgid = Pack_%s_%s(&(_m->%s), d, &len, &ide);",
+        tof.Append("    uint32_t msgid;");
+        tof.Append("    uint8_t d[8], len, ide;");
+        tof.Append("    msgid = Pack_%s_%s(&(_m->%s), d, &len, &ide);",
           msg->Name.c_str(), code_drvname.c_str(), msg->Name.c_str());
-        tof.Append("  ret = SendCanMessage(msgid, ide, d, len);");
-        tof.Append("  if (ret != 0) {");
-        tof.Append("   return ret;");
+        tof.Append("    ret = SendCanMessage(msgid, ide, d, len);");
+        tof.Append("    if (ret != 0) {");
+        tof.Append("      return ret;");
+        tof.Append("    }");
         tof.Append("  }");
-        tof.Append(" }");
       }
     }
-    tof.Append(" return 0u;");
+    tof.Append("  return 0u;");
     tof.Append("}");
     tof.Append();
   }
