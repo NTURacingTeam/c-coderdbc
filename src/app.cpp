@@ -112,18 +112,18 @@ void CoderApp::GenerateCode()
     // for each node in collection perform specific bin-util generation
     for (size_t node = 0; node < nodes.size(); node++)
     {
-      std::string util_name = nodes[node] + "_" + Params.drvname.first;
+      std::string util_name = Params.drvname.first + "_" + nodes[node];
 
       // set new driver name for current node
       fscreator.FS.gen.drvname = str_tolower(util_name);
-      fscreator.FS.gen.DRVNAME = str_toupper(fscreator.FS.gen.drvname);
+      fscreator.FS.gen.DRVNAME = str_toupper(util_name);
       fscreator.FS.file.util_c.dir = fscreator.FS.file.utildir;
       fscreator.FS.file.util_h.dir = fscreator.FS.file.utildir;
 
-      fscreator.FS.file.util_h.fname = str_tolower(fscreator.FS.gen.drvname + "-binutil.h");
+      fscreator.FS.file.util_h.fname = fscreator.FS.gen.drvname + "-binutil.h";
       fscreator.FS.file.util_h.fpath = fscreator.FS.file.utildir + "/" + fscreator.FS.file.util_h.fname;
 
-      fscreator.FS.file.util_c.fname = str_tolower(fscreator.FS.gen.drvname + "-binutil.c");
+      fscreator.FS.file.util_c.fname = fscreator.FS.gen.drvname + "-binutil.c";
       fscreator.FS.file.util_c.fpath = fscreator.FS.file.utildir + "/" + fscreator.FS.file.util_c.fname;
 
       MsgsClassification groups;
