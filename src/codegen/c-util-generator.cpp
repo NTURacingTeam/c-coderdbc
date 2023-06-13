@@ -115,7 +115,6 @@ void CiUtilGenerator::PrintHeader()
   tof.Append("#include <%s.h>", file_drvname.c_str());
   tof.Append();
 
-
   if (rx.size() == 0)
   {
     tof.Append("// There is no any RX mapped massage.");
@@ -304,8 +303,8 @@ void CiUtilGenerator::PrintSource()
       if (msg->Cycle > 0) {
         tof.Append("  if ((now - _m->%s.mon1.last_cycle) > 5 * %s_CYC) {",
           msg->Name.c_str(), msg->Name.c_str());
-        tof.Append("    AlertReceptionTimeout(%s_CANID, _m->%s.mon1.last_cycle);",
-          msg->Name.c_str(), msg->Name.c_str());
+        tof.Append("    TOut_%s_%s(&_m->%s.mon1, %s_CANID, _m->%s.mon1.last_cycle);",
+          msg->Name.c_str(), file_drvname.c_str(), msg->Name.c_str(), msg->Name.c_str(), msg->Name.c_str());
         tof.Append("  }");
       }
     }
