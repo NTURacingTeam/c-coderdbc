@@ -232,6 +232,20 @@ void CiUtilGenerator::PrintSource()
   tof.Append("#endif");
   tof.Append();
 
+  // put diagmonitor ifdef selection for including @drv-fmon header
+  // with FMon_* signatures to call from unpack function
+  tof.Append("#ifdef %s", gdesc->usemon_def.c_str());
+
+  tof.Append(
+    "// Function prototypes to be called each time CAN frame is unpacked\n"
+    "// FMon function may detect RC, CRC or DLC violation\n");
+
+  tof.Append("#include <%s-fmon.h>", file_drvname.c_str());
+  tof.Append();
+
+  tof.Append("#endif // %s", gdesc->usemon_def.c_str());
+  tof.Append("");
+
   // optional RX and TX struct allocations
   if (rx.size() > 0 || tx.size() > 0)
   {
