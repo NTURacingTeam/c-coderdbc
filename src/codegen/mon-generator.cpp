@@ -137,7 +137,8 @@ next generation will completely clear all manually added code (!)\n\
   wr.Append("__attribute__((weak))");
   wr.Append("void _FMon_MONO_%s(FrameMonitor_t* _mon, uint32_t msgid)\n{\n  (void)_mon;\n  (void)msgid;\n}\n\n",
     aset.gen.drvname.c_str());
-  wr.Append("void _TOut_MONO_%s(FrameMonitor_t* _mon, uint32_t msgid, uint32_t lastcyc)\n{\n  (void)_mon;\n  (void)msgid;\n  (void)lastcyc;}\n\n",
+  wr.Append("__attribute__((weak))");
+  wr.Append("void _TOut_MONO_%s(FrameMonitor_t* _mon, uint32_t msgid, uint32_t lastcyc)\n{\n  (void)_mon;\n  (void)msgid;\n  (void)lastcyc;\n}\n\n",
     aset.gen.drvname.c_str());
   wr.Append("#else");
   wr.Append();
