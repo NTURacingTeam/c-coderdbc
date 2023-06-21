@@ -14,24 +14,24 @@
 
 #include "c-main-generator.h"
 
-const char* ext_sig_func_name = "__ext_sig__";
+const char *ext_sig_func_name = "__ext_sig__";
 
-const char* extend_func_body =
-  "// This function performs extension of sign for the signals\n"
-  "// which have non-aligned to power of 2 bit's width.\n"
-  "// The types 'bitext_t' and 'ubitext_t' define maximal bit width which\n"
-  "// can be correctly handled. You need to select type which can contain\n"
-  "// n+1 bits where n is the largest signed signal width. For example if\n"
-  "// the most wide signed signal has a width of 31 bits you need to set\n"
-  "// bitext_t as int32_t and ubitext_t as uint32_t\n"
-  "// Defined these typedefs in @dbccodeconf.h or locally in 'dbcdrvname'-config.h\n"
-  "static bitext_t %s(ubitext_t val, uint8_t bits)\n"
-  "{\n"
-  "  ubitext_t const m = 1u << (bits - 1);\n"
-  "  return (val ^ m) - m;\n"
-  "}\n\n";
+const char *extend_func_body =
+    "// This function performs extension of sign for the signals\n"
+    "// which have non-aligned to power of 2 bit's width.\n"
+    "// The types 'bitext_t' and 'ubitext_t' define maximal bit width which\n"
+    "// can be correctly handled. You need to select type which can contain\n"
+    "// n+1 bits where n is the largest signed signal width. For example if\n"
+    "// the most wide signed signal has a width of 31 bits you need to set\n"
+    "// bitext_t as int32_t and ubitext_t as uint32_t\n"
+    "// Defined these typedefs in @dbccodeconf.h or locally in 'dbcdrvname'-config.h\n"
+    "static bitext_t %s(ubitext_t val, uint8_t bits)\n"
+    "{\n"
+    "  ubitext_t const m = 1u << (bits - 1);\n"
+    "  return (val ^ m) - m;\n"
+    "}\n\n";
 
-void CiMainGenerator::Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd)
+void CiMainGenerator::Generate(DbcMessageList_t &dlist, const AppSettings_t &fsd)
 {
   // Load income messages to sig printer
   sigprt.LoadMessages(dlist.msgs);
@@ -41,10 +41,10 @@ void CiMainGenerator::Generate(DbcMessageList_t& dlist, const AppSettings_t& fsd
   fdesc = &fsd;
 
   std::sort(sigprt.sigs_expr.begin(), sigprt.sigs_expr.end(),
-    [](const CiExpr_t* a, const CiExpr_t* b) -> bool
-  {
-    return a->msg.MsgID < b->msg.MsgID;
-  });
+            [](const CiExpr_t *a, const CiExpr_t *b) -> bool
+            {
+              return a->msg.MsgID < b->msg.MsgID;
+            });
 
   // 2 step is to print main head file
   Gen_MainHeader();
@@ -107,11 +107,10 @@ void CiMainGenerator::Gen_MainHeader()
   fwriter.Append("#ifdef %s", fdesc->gen.usemon_def.c_str());
 
   fwriter.Append(
-    "// This file must define:\n"
-    "// base monitor struct\n"
-    "#include <canmonitorutil.h>\n"
-    "\n"
-  );
+      "// This file must define:\n"
+      "// base monitor struct\n"
+      "#include <canmonitorutil.h>\n"
+      "\n");
 
   fwriter.Append("#endif // %s", fdesc->gen.usemon_def.c_str());
   fwriter.Append(2);
@@ -119,7 +118,7 @@ void CiMainGenerator::Gen_MainHeader()
   for (size_t num = 0; num < sigprt.sigs_expr.size(); num++)
   {
     // write message typedef s and additional expressions
-    MessageDescriptor_t& m = sigprt.sigs_expr[num]->msg;
+    MessageDescriptor_t &m = sigprt.sigs_expr[num]->msg;
 
     if (m.CommentText.size() > 0)
     {
@@ -141,7 +140,7 @@ void CiMainGenerator::Gen_MainHeader()
 
     for (size_t signum = 0; signum < m.Signals.size(); signum++)
     {
-      SignalDescriptor_t& s = m.Signals[signum];
+      SignalDescriptor_t &s = m.Signals[signum];
 
       if (!s.IsSimpleSig)
       {
@@ -176,8 +175,8 @@ void CiMainGenerator::Gen_MainHeader()
           fwriter.Append("#ifndef %s", defname.c_str());
 
           fwriter.Append("#define %s_%s_%s (%d)",
-            s.Name.c_str(), m.Name.c_str(), s.ValDefs.vpairs[i].first.c_str(),
-            s.ValDefs.vpairs[i].second);
+                         s.Name.c_str(), m.Name.c_str(), s.ValDefs.vpairs[i].first.c_str(),
+                         s.ValDefs.vpairs[i].second);
 
           fwriter.Append("#endif");
           fwriter.Append();
@@ -205,7 +204,7 @@ void CiMainGenerator::Gen_MainHeader()
 
     for (size_t signum = 0; signum < m.Signals.size(); signum++)
     {
-      SignalDescriptor_t& sig = m.Signals[signum];
+      SignalDescriptor_t &sig = m.Signals[signum];
       // Write bit-fielded part
       WriteSigStructField(sig, true, max_sig_name_len);
     }
@@ -225,7 +224,7 @@ void CiMainGenerator::Gen_MainHeader()
 
     for (size_t signum = 0; signum < m.Signals.size(); signum++)
     {
-      SignalDescriptor_t& sig = m.Signals[signum];
+      SignalDescriptor_t &sig = m.Signals[signum];
       // Write clean signals
       WriteSigStructField(sig, false, max_sig_name_len);
     }
@@ -259,20 +258,20 @@ void CiMainGenerator::Gen_MainHeader()
   for (size_t num = 0; num < sigprt.sigs_expr.size(); num++)
   {
     // write message typedef s and additional expressions
-    MessageDescriptor_t& m = sigprt.sigs_expr[num]->msg;
+    MessageDescriptor_t &m = sigprt.sigs_expr[num]->msg;
 
     fwriter.Append("uint32_t Unpack_%s_%s(%s_t* _m, const uint8_t* _d, uint8_t dlc_);",
-      m.Name.c_str(), fdesc->gen.DrvName_orig.c_str(), m.Name.c_str());
+                   m.Name.c_str(), fdesc->gen.DrvName_orig.c_str(), m.Name.c_str());
 
     fwriter.Append("#ifdef %s", fdesc->gen.usesruct_def.c_str());
 
     fwriter.Append("uint32_t Pack_%s_%s(%s_t* _m, __CoderDbcCanFrame_t__* cframe);",
-      m.Name.c_str(), fdesc->gen.DrvName_orig.c_str(), m.Name.c_str());
+                   m.Name.c_str(), fdesc->gen.DrvName_orig.c_str(), m.Name.c_str());
 
     fwriter.Append("#else");
 
     fwriter.Append("uint32_t Pack_%s_%s(%s_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide);",
-      m.Name.c_str(), fdesc->gen.DrvName_orig.c_str(), m.Name.c_str());
+                   m.Name.c_str(), fdesc->gen.DrvName_orig.c_str(), m.Name.c_str());
 
     fwriter.Append("#endif // %s", fdesc->gen.usesruct_def.c_str());
     fwriter.Append();
@@ -298,7 +297,7 @@ void CiMainGenerator::Gen_MainSource()
 
   fwriter.Append("// DBC file version");
   fwriter.Append("#if (%s != (%uU)) || (%s != (%uU))",
-    fdesc->gen.verhigh_def.c_str(), fdesc->gen.hiver, fdesc->gen.verlow_def.c_str(), fdesc->gen.lowver);
+                 fdesc->gen.verhigh_def.c_str(), fdesc->gen.hiver, fdesc->gen.verlow_def.c_str(), fdesc->gen.lowver);
 
   fwriter.Append("#error The %s dbc source files have different versions", fdesc->gen.DRVNAME.c_str());
   fwriter.Append("#endif");
@@ -309,8 +308,8 @@ void CiMainGenerator::Gen_MainSource()
   fwriter.Append("#ifdef %s", fdesc->gen.usemon_def.c_str());
 
   fwriter.Append(
-    "// Function prototypes to be called each time CAN frame is unpacked\n"
-    "// FMon function may detect RC, CRC or DLC violation\n");
+      "// Function prototypes to be called each time CAN frame is unpacked\n"
+      "// FMon function may detect RC, CRC or DLC violation\n");
 
   fwriter.Append("#include <%s-fmon.h>", fdesc->gen.drvname.c_str());
   fwriter.Append();
@@ -321,7 +320,7 @@ void CiMainGenerator::Gen_MainSource()
   fwriter.Append("// using diag monitors but there is no necessity in proper");
   fwriter.Append("// SysTick provider.");
   fwriter.Append("");
-  fwriter.Append("__attribute__((weak)) uint32_t __get_system_tick__()");
+  fwriter.Append("__attribute__((weak)) uint32_t __get__tick__()");
   fwriter.Append("{");
   fwriter.Append("  return 0u;");
   fwriter.Append("}");
@@ -362,11 +361,11 @@ void CiMainGenerator::Gen_MainSource()
   for (size_t num = 0; num < sigprt.sigs_expr.size(); num++)
   {
     // write message typedef s and additional expressions
-    MessageDescriptor_t& m = sigprt.sigs_expr[num]->msg;
+    MessageDescriptor_t &m = sigprt.sigs_expr[num]->msg;
 
     // first function
     fwriter.Append("uint32_t Unpack_%s_%s(%s_t* _m, const uint8_t* _d, uint8_t dlc_)\n{",
-      m.Name.c_str(), fdesc->gen.DrvName_orig.c_str(), m.Name.c_str());
+                   m.Name.c_str(), fdesc->gen.DrvName_orig.c_str(), m.Name.c_str());
 
     // put dirt trick to avoid warning about unusing parameter
     // (dlc) when monitora are disabled. trick is better than
@@ -384,7 +383,7 @@ void CiMainGenerator::Gen_MainSource()
 
     // second function
     fwriter.Append("uint32_t Pack_%s_%s(%s_t* _m, __CoderDbcCanFrame_t__* cframe)",
-      m.Name.c_str(), fdesc->gen.DrvName_orig.c_str(), m.Name.c_str());
+                   m.Name.c_str(), fdesc->gen.DrvName_orig.c_str(), m.Name.c_str());
 
     WritePackStructBody(sigprt.sigs_expr[num]);
 
@@ -393,7 +392,7 @@ void CiMainGenerator::Gen_MainSource()
 
     // third function
     fwriter.Append("uint32_t Pack_%s_%s(%s_t* _m, uint8_t* _d, uint8_t* _len, uint8_t* _ide)",
-      m.Name.c_str(), fdesc->gen.DrvName_orig.c_str(), m.Name.c_str());
+                   m.Name.c_str(), fdesc->gen.DrvName_orig.c_str(), m.Name.c_str());
 
     WritePackArrayBody(sigprt.sigs_expr[num]);
 
@@ -543,7 +542,7 @@ void CiMainGenerator::Gen_DbcCodeConf()
   fwriter.Flush(fdesc->file.confdir + '/' + "dbccodeconf.h");
 }
 
-void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bits, size_t padwidth)
+void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t &sig, bool bits, size_t padwidth)
 {
   if (sig.CommentText.size() > 0)
   {
@@ -664,19 +663,19 @@ void CiMainGenerator::WriteSigStructField(const SignalDescriptor_t& sig, bool bi
   }
 }
 
-void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
+void CiMainGenerator::WriteUnpackBody(const CiExpr_t *sgs)
 {
   for (size_t num = 0; num < sgs->to_signals.size(); num++)
   {
     auto expr = sgs->to_signals[num];
 
     // for code shortening
-    const char* sname = sgs->msg.Signals[num].Name.c_str();
+    const char *sname = sgs->msg.Signals[num].Name.c_str();
 
     if (sgs->msg.Signals[num].Signed)
     {
       fwriter.Append("  _m->%s = %s(( %s ), %d);",
-        sname, ext_sig_func_name, expr.c_str(), (int32_t)sgs->msg.Signals[num].LengthBit);
+                     sname, ext_sig_func_name, expr.c_str(), (int32_t)sgs->msg.Signals[num].LengthBit);
     }
     else
     {
@@ -692,12 +691,12 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
       {
         // for double signals (sigfloat_t) type cast
         fwriter.Append("  _m->%s = (sigfloat_t)(%s_%s_fromS(_m->%s));",
-          sgs->msg.Signals[num].NameFloat.c_str(), fdesc->gen.DRVNAME.c_str(), sname, sname);
+                       sgs->msg.Signals[num].NameFloat.c_str(), fdesc->gen.DRVNAME.c_str(), sname, sname);
       }
       else
       {
         fwriter.Append("  _m->%s = %s_%s_fromS(_m->%s);",
-          sgs->msg.Signals[num].NameFloat.c_str(), fdesc->gen.DRVNAME.c_str(), sname, sname);
+                       sgs->msg.Signals[num].NameFloat.c_str(), fdesc->gen.DRVNAME.c_str(), sname, sname);
       }
 
       fwriter.Append("#endif // %s", fdesc->gen.usesigfloat_def.c_str());
@@ -722,9 +721,9 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
     // Put rolling monitor here
     fwriter.Append("#ifdef %s", fdesc->gen.useroll_def.c_str());
     fwriter.Append("  _m->mon1.roll_error = (_m->%s != _m->%s_expt);",
-      sgs->msg.RollSig->Name.c_str(), sgs->msg.RollSig->Name.c_str());
+                   sgs->msg.RollSig->Name.c_str(), sgs->msg.RollSig->Name.c_str());
     fwriter.Append("  _m->%s_expt = (_m->%s + 1) & (0x%02XU);", sgs->msg.RollSig->Name.c_str(),
-      sgs->msg.RollSig->Name.c_str(), (1 << sgs->msg.RollSig->LengthBit) - 1);
+                   sgs->msg.RollSig->Name.c_str(), (1 << sgs->msg.RollSig->LengthBit) - 1);
     // Put rolling monitor here
     fwriter.Append("#endif // %s", fdesc->gen.useroll_def.c_str());
     fwriter.Append();
@@ -735,8 +734,8 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
     // Put checksum check function call here
     fwriter.Append("#ifdef %s", fdesc->gen.usecsm_def.c_str());
     fwriter.Append("  _m->mon1.csm_error = (((uint8_t)GetFrameHash(_d, %s_DLC, %s_CANID, %s, %d)) != (_m->%s));",
-      sgs->msg.Name.c_str(), sgs->msg.Name.c_str(), sgs->msg.CsmMethod.c_str(),
-      sgs->msg.CsmOp, sgs->msg.CsmSig->Name.c_str());
+                   sgs->msg.Name.c_str(), sgs->msg.Name.c_str(), sgs->msg.CsmMethod.c_str(),
+                   sgs->msg.CsmOp, sgs->msg.CsmSig->Name.c_str());
     fwriter.Append("#endif // %s", fdesc->gen.usecsm_def.c_str());
     fwriter.Append();
   }
@@ -751,7 +750,7 @@ void CiMainGenerator::WriteUnpackBody(const CiExpr_t* sgs)
   fwriter.Append("  return %s_CANID;", sgs->msg.Name.c_str());
 }
 
-void CiMainGenerator::WritePackStructBody(const CiExpr_t* sgs)
+void CiMainGenerator::WritePackStructBody(const CiExpr_t *sgs)
 {
   fwriter.Append("{");
   PrintPackCommonText("cframe->Data", sgs);
@@ -763,7 +762,7 @@ void CiMainGenerator::WritePackStructBody(const CiExpr_t* sgs)
   fwriter.Append();
 }
 
-void CiMainGenerator::WritePackArrayBody(const CiExpr_t* sgs)
+void CiMainGenerator::WritePackArrayBody(const CiExpr_t *sgs)
 {
   fwriter.Append("{");
   PrintPackCommonText("_d", sgs);
@@ -774,21 +773,21 @@ void CiMainGenerator::WritePackArrayBody(const CiExpr_t* sgs)
   fwriter.Append();
 }
 
-void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExpr_t* sgs)
+void CiMainGenerator::PrintPackCommonText(const std::string &arrtxt, const CiExpr_t *sgs)
 {
   // this function will print part of pack function
   // which is differs only by arra var name
 
   // pring array content clearin loop
   fwriter.Append("  uint8_t i; for (i = 0; (i < %s_DLC) && (i < 8); %s[i++] = 0);",
-    sgs->msg.Name.c_str(), arrtxt.c_str());
+                 sgs->msg.Name.c_str(), arrtxt.c_str());
   fwriter.Append();
 
   if (sgs->msg.RollSig != nullptr)
   {
     fwriter.Append("#ifdef %s", fdesc->gen.useroll_def.c_str());
     fwriter.Append("  _m->%s = (_m->%s + 1) & (0x%02XU);", sgs->msg.RollSig->Name.c_str(),
-      sgs->msg.RollSig->Name.c_str(), (1 << sgs->msg.RollSig->LengthBit) - 1);
+                   sgs->msg.RollSig->Name.c_str(), (1 << sgs->msg.RollSig->LengthBit) - 1);
     fwriter.Append("#endif // %s", fdesc->gen.useroll_def.c_str());
     fwriter.Append();
   }
@@ -814,8 +813,8 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
       {
         // print toS from *_phys to original named sigint (integer duplicate of signal)
         fwriter.Append("  _m->%s = %s_%s_toS(_m->%s);",
-          sgs->msg.Signals[n].Name.c_str(), fdesc->gen.DRVNAME.c_str(),
-          sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].NameFloat.c_str());
+                       sgs->msg.Signals[n].Name.c_str(), fdesc->gen.DRVNAME.c_str(),
+                       sgs->msg.Signals[n].Name.c_str(), sgs->msg.Signals[n].NameFloat.c_str());
       }
     }
 
@@ -841,8 +840,8 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
     fwriter.Append("#ifdef %s", fdesc->gen.usecsm_def.c_str());
 
     fwriter.Append("  _m->%s = ((uint8_t)GetFrameHash(%s, %s_DLC, %s_CANID, %s, %d));",
-      sgs->msg.CsmSig->Name.c_str(), arrtxt.c_str(), sgs->msg.Name.c_str(),
-      sgs->msg.Name.c_str(), sgs->msg.CsmMethod.c_str(), sgs->msg.CsmOp);
+                   sgs->msg.CsmSig->Name.c_str(), arrtxt.c_str(), sgs->msg.Name.c_str(),
+                   sgs->msg.Name.c_str(), sgs->msg.CsmMethod.c_str(), sgs->msg.CsmOp);
 
     fwriter.Append("  %s[%d] |= %s;", arrtxt.c_str(), sgs->msg.CsmByteNum, sgs->msg.CsmToByteExpr.c_str());
 
@@ -850,4 +849,3 @@ void CiMainGenerator::PrintPackCommonText(const std::string& arrtxt, const CiExp
     fwriter.Append();
   }
 }
-
