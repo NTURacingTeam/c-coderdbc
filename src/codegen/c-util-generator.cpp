@@ -337,6 +337,8 @@ void CiUtilGenerator::PrintSource()
       if (msg->Cycle > 0) {
         tof.Append("  if ((now - _m->%s.mon1.last_cycle) > %s_CYC) {",
           msg->Name.c_str(), msg->Name.c_str());
+        tof.Append("    FTrn_%s_%s((&_m->%s));", msg->Name.c_str(), file_drvname.c_str(), msg->Name.c_str());
+        tof.Append();
         tof.Append("    uint32_t msgid;");
         tof.Append("    uint8_t d[8], len, ide;");
         tof.Append("    msgid = Pack_%s_%s(&(_m->%s), d, &len, &ide);",

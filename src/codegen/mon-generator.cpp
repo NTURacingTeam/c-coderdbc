@@ -20,6 +20,7 @@ uint32_t MonGenerator::FillHeader(FileWriter& wr, std::vector<CiExpr_t*>& sigs,
   wr.Append("#define %s_FMON (%uU)", aset.gen.verlow_def.c_str(), aset.gen.lowver);
   wr.Append();
 
+  wr.Append("#include <%s.h>", aset.gen.drvname.c_str());
   wr.Append("#include <%s-config.h>", aset.gen.drvname.c_str());
   wr.Append();
 
@@ -101,7 +102,16 @@ separated .c file. If it won't be done the linkage error will happen\n*/");
   }
 
   wr.Append();
-  wr.Append("#endif");
+  wr.Append("#endif // %s_USE_MONO_FMON", aset.gen.DRVNAME.c_str());
+  wr.Append();
+
+  for (auto it = sigs.begin(); it != sigs.end(); ++it)
+  {
+    auto msg = &((*it)->msg);
+    wr.Append("void FTrn_%s_%s(%s_t* _m);",
+      msg->Name.c_str(), aset.gen.drvname.c_str(), msg->Name.c_str());
+  }
+
   wr.Append();
 
   wr.Append("#endif // %s", aset.gen.usemon_def.c_str());
@@ -164,6 +174,17 @@ next generation will completely clear all manually added code (!)\n\
   wr.Append("#endif // %s_USE_MONO_FMON", aset.gen.DRVNAME.c_str());
   wr.Append();
 
+  for (auto it = sigs.begin(); it != sigs.end(); ++it)
+  {
+    auto msg = &((*it)->msg);
+    wr.Append("__attribute__((weak))");
+    wr.Append("void FTrn_%s_%s(%s_t* _m)\n{\n  (void)_m;\n}\n\n",
+      msg->Name.c_str(),
+      aset.gen.drvname.c_str(),
+      msg->Name.c_str());
+  }
+
+  wr.Append();
   wr.Append("#endif // %s", aset.gen.usemon_def.c_str());
 
   return 0;
